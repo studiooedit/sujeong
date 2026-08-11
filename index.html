@@ -1319,6 +1319,24 @@ document.addEventListener('mouseout', (e)=>{
   if(e.target.closest('a, button, .card, .filter-btn, .contact-big, input, select, textarea')){
     cursor.classList.remove('big');
   }
+// 스크롤 시 화면에 요소를 나타나게 하는 스크립트
+document.addEventListener("DOMContentLoaded", function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  // 숨겨진 요소들 관찰 시작
+  const hiddenElements = document.querySelectorAll('.fadeup, .card');
+  hiddenElements.forEach((el) => observer.observe(el));
+  
+  // 새로고침 시 화면 최상단 요소들을 즉시 보여주기
+  setTimeout(() => {
+    document.querySelectorAll('.fadeup').forEach(el => el.classList.add('reveal'));
+  }, 100);
 });
 </script>
 </body>
