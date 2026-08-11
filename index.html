@@ -991,10 +991,6 @@ function resetUploadField(){
 const WORKER_URL = 'https://dry-wood-0a0c.dduyaaaa.workers.dev/';
 
 async function saveToGithub(){
-  if(WORKER_URL.includes('https://dry-wood-0a0c.dduyaaaa.workers.dev/')){
-    alert('아직 Worker 주소가 설정되지 않았습니다.\nindex.html의 WORKER_URL 값을 배포한 Cloudflare Worker 주소로 바꿔주세요.');
-    return;
-  }
   const pw = prompt('GitHub 저장을 위한 관리자 비밀번호를 입력하세요.');
   if(!pw) return;
 
