@@ -599,6 +599,76 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // 1. Worker URL 설정 (본인의 Worker 주소로 변경)
+  const WORKER_URL = "https://my-editor-worker.abc1234.workers.dev";
+
+  // 2. 단축키 감지 이벤트 리스너
+  document.addEventListener('keydown', function(event) {
+    // Ctrl + Shift + A (Mac의 경우 Cmd + Shift + A 지원)
+    const isControl = event.ctrlKey || event.metaKey;
+    const isShift = event.shiftKey;
+    const isKeyA = event.key.toLowerCase() === 'a';
+
+    if (isControl && isShift && isKeyA) {
+      // 브라우저 기본 동작 차단 (충돌 방지)
+      event.preventDefault();
+      
+      console.log("단축키 감지됨! 편집 모드를 실행합니다.");
+      toggleEditMode();
+    }
+  });
+
+  // 3. 편집 모드 전환 및 저장 함수
+  function toggleEditMode() {
+    // 현재 body가 편집 가능한 상태인지 확인
+    const isEditable = document.body.contentEditable === 'true';
+
+    if (!isEditable) {
+      // [수정 시작]
+      document.body.contentEditable = 'true';
+      alert("✏️ [편집 모드 활성화]\n텍스트를 클릭해서 직접 수정하세요.\n수정이 끝나면 다시 Ctrl+Shift+A를 눌러 저장하세요.");
+    } else {
+      // [수정 완료 및 저장]
+      const password = prompt("GitHub에 저장하려면 비밀번호를 입력하세요:");
+      if (!password) {
+        alert("취소되었습니다.");
+        return;
+      }
+
+      // 저장 처리 진행
+      saveToGitHub(password);
+    }
+  }
+
+  // 4. Cloudflare Worker 호출 함수
+  async function saveToGitHub(password) {
+    // 편집 모드 비활성화 후 깨끗한 HTML 추출
+    document.body.contentEditable = 'false';
+    const updatedHtml = document.documentElement.outerHTML;
+
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: password,
+          content: updatedHtml
+        })
+      });
+
+      if (response.ok) {
+        alert("✅ 성공적으로 GitHub에 저장되었습니다! (1~2분 후 반영됩니다)");
+      } else {
+        const errorText = await response.text();
+        alert("❌ 저장 실패: " + errorText);
+        // 실패 시 다시 편집 상태 유지
+        document.body.contentEditable = 'true';
+      }
+    } catch (err) {
+      alert("❌ 통신 에러 발생: " + err.message);
+      document.body.contentEditable = 'true';
+    }
+  }
 /* ---------- default project data ---------- */
 /* ---------- editable site content (hero / career / license / campus) ---------- */
 const SITE_CONTENT = {
