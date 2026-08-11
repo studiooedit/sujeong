@@ -1267,59 +1267,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('.fadeup').forEach(el => el.classList.add('reveal'));
   }, 100);
 });
-
-/* ---------- GitHub 저장 버튼 ---------- */
-const githubSaveFab = document.getElementById('githubSaveFab');
-const WORKER_URL = 'https://dry-wood-0a0c.dduyaaaa.workers.dev/';
-
-if (githubSaveFab) {
-  githubSaveFab.addEventListener('click', async () => {
-    const password = prompt('관리자 비밀번호를 입력하세요:');
-    if (!password) {
-      alert('저장이 취소되었습니다.');
-      return;
-    }
-
-    const commitMsg = prompt('커밋 메시지를 입력하세요:\n(예: 새로운 프로젝트 추가)');
-    const message = commitMsg ? commitMsg : '관리자 페이지에서 콘텐츠 업데이트';
-
-    const currentHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    const originalText = githubSaveFab.innerText;
-    githubSaveFab.innerText = '⏳ 저장 중...';
-    githubSaveFab.style.pointerEvents = 'none';
-    githubSaveFab.style.opacity = '0.7';
-
-    try {
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: password,
-          content: currentHtml,
-          message: message
-        })
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('✅ 성공적으로 GitHub에 저장되었습니다!\n새로고침을 해도 변경 사항이 유지됩니다.');
-        console.log('Commit SHA:', result.commit);
-      } else {
-        alert('❌ 저장 실패:\n' + result.error);
-        console.error('Save error:', result.error);
-      }
-    } catch (error) {
-      alert('❌ 네트워크 오류가 발생했습니다.\n콘솔 창을 확인해주세요.');
-      console.error('Network error:', error);
-    } finally {
-      githubSaveFab.innerText = originalText;
-      githubSaveFab.style.pointerEvents = 'auto';
-      githubSaveFab.style.opacity = '1';
-    }
-  });
-}
 </script>
 </body>
 </html>
