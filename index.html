@@ -988,7 +988,6 @@ function resetUploadField(){
 
 /* ---------- GitHub 실시간 저장 ---------- */
 // ⚠️ Cloudflare Worker를 배포한 뒤, 아래 주소를 실제 Worker 주소로 반드시 교체하세요.
-// 예: https://dry-wood-0a0c.dduyaaaa.workers.dev/
 const WORKER_URL = 'https://dry-wood-0a0c.dduyaaaa.workers.dev/';
 
 async function saveToGithub(){
@@ -1249,7 +1248,9 @@ document.addEventListener('mouseout', (e)=>{
   if(e.target.closest('a, button, .card, .filter-btn, .contact-big, input, select, textarea')){
     cursor.classList.remove('big');
   }
-// 스크롤 시 화면에 요소를 나타나게 하는 스크립트
+});
+
+/* ---------- 스크롤 reveal ---------- */
 document.addEventListener("DOMContentLoaded", function() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1259,50 +1260,15 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }, { threshold: 0.1 });
 
-  // 숨겨진 요소들 관찰 시작
   const hiddenElements = document.querySelectorAll('.fadeup, .card');
   hiddenElements.forEach((el) => observer.observe(el));
-  
-  // 새로고침 시 화면 최상단 요소들을 즉시 보여주기
+
   setTimeout(() => {
     document.querySelectorAll('.fadeup').forEach(el => el.classList.add('reveal'));
   }, 100);
-    
-    // 1. Worker URL 설정 (이후 코드 내용)
-    
-    }
-  });
+});
 
-  // 4. Cloudflare Worker 호출 함수
-  async function saveToGitHub(password) {
-    // 편집 모드 비활성화 후 깨끗한 HTML 추출
-    document.body.contentEditable = 'false';
-    const updatedHtml = document.documentElement.outerHTML;
-
-    try {
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: password,
-          content: updatedHtml
-        })
-      });
-
-      if (response.ok) {
-        alert("✅ 성공적으로 GitHub에 저장되었습니다! (1~2분 후 반영됩니다)");
-      } else {
-        const errorText = await response.text();
-        alert("❌ 저장 실패: " + errorText);
-        // 실패 시 다시 편집 상태 유지
-        document.body.contentEditable = 'true';
-      }
-    } catch (err) {
-      alert("❌ 통신 에러 발생: " + err.message);
-      document.body.contentEditable = 'true';
-    }
-  }
-// GitHub 저장 버튼 이벤트 리스너 전체
+/* ---------- GitHub 저장 버튼 ---------- */
 const githubSaveFab = document.getElementById('githubSaveFab');
 const WORKER_URL = 'https://dry-wood-0a0c.dduyaaaa.workers.dev/save';
 
@@ -1327,9 +1293,7 @@ if (githubSaveFab) {
     try {
       const response = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           password: password,
           content: currentHtml,
@@ -1350,68 +1314,6 @@ if (githubSaveFab) {
       alert('❌ 네트워크 오류가 발생했습니다.\n콘솔 창을 확인해주세요.');
       console.error('Network error:', error);
     } finally {
-      githubSaveFab.innerText = originalText;
-      githubSaveFab.style.pointerEvents = 'auto';
-      githubSaveFab.style.opacity = '1';
-    }
-  });
-// GitHub 저장 버튼 요소 가져오기
-const githubSaveFab = document.getElementById('githubSaveFab');
-// Worker URL 
-const WORKER_URL = 'https://dry-wood-0a0c.dduyaaaa.workers.dev/save';
-
-if (githubSaveFab) {
-  githubSaveFab.addEventListener('click', async () => {
-    // 1. 관리자 비밀번호 입력받기
-    const password = prompt('관리자 비밀번호를 입력하세요:');
-    if (!password) {
-      alert('저장이 취소되었습니다.');
-      return;
-    }
-
-    // 2. 커밋 메시지 입력받기 (취소하거나 빈칸이면 기본값 사용)
-    const commitMsg = prompt('커밋 메시지를 입력하세요:\n(예: 새로운 프로젝트 SADAM 추가)');
-    const message = commitMsg ? commitMsg : '관리자 페이지에서 콘텐츠 업데이트';
-
-    // 3. 현재 문서의 전체 HTML 가져오기 (<!DOCTYPE html> 포함)
-    // 현재 DOM 상태(새로 추가된 프로젝트 등)가 모두 반영된 상태를 캡처합니다.
-    const currentHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    // 4. 사용자 UI 피드백 (버튼 상태 변경)
-    const originalText = githubSaveFab.innerText;
-    githubSaveFab.innerText = '⏳ 저장 중...';
-    githubSaveFab.style.pointerEvents = 'none'; // 중복 클릭 방지
-    githubSaveFab.style.opacity = '0.7';
-
-    try {
-      // 5. Cloudflare Worker로 POST 요청 전송
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          password: password,
-          content: currentHtml,
-          message: message
-        })
-      });
-
-      const result = await response.json();
-
-      // 6. 결과 처리
-      if (response.ok) {
-        alert('✅ 성공적으로 GitHub에 저장되었습니다!\n새로고침을 해도 변경 사항이 유지됩니다.');
-        console.log('Commit SHA:', result.commit);
-      } else {
-        alert('❌ 저장 실패:\n' + result.error);
-        console.error('Save error:', result.error);
-      }
-    } catch (error) {
-      alert('❌ 네트워크 오류가 발생했습니다.\n콘솔 창을 확인해주세요.');
-      console.error('Network error:', error);
-    } finally {
-      // 7. 버튼 상태 원상 복구
       githubSaveFab.innerText = originalText;
       githubSaveFab.style.pointerEvents = 'auto';
       githubSaveFab.style.opacity = '1';
